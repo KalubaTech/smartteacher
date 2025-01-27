@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "732661652000",
+    "project_id": "smartteacher-e47ab",
+    "storage_bucket": "smartteacher-e47ab.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732661652000:android:85547bb6057955b2b17a45",
+        "android_client_info": {
+          "package_name": "com.kalootech.smart_teacher"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "732661652000-4mdqm8l25an0q6ok54lvulmlibqu9hto.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kalootech.smart_teacher",
+            "certificate_hash": "09abf4793b50eef3422c813e1191eb932e5f49a1"
+          }
+        },
+        {
+          "client_id": "732661652000-map8m2784fdf7h7imrnh6ucptf0ikiqu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8LOKByT8_j1x_l001JrFNt8PE9YHX8Yk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "732661652000-map8m2784fdf7h7imrnh6ucptf0ikiqu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
