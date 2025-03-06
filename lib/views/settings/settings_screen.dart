@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Get.to(()=>AboutUs(), transition: Transition.fade);
               },
               leading: Icon(Icons.question_mark_rounded),
-              title: Text('About'),
+              title: Text('Contact us'),
               trailing: Icon(Icons.chevron_right),
             ),
             Divider(color: Colors.grey.shade200,),
