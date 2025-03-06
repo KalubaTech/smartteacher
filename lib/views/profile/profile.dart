@@ -22,7 +22,6 @@ class Profile extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: Karas.primary.withOpacity(0.2),
             title: Text('Profile', style: GoogleFonts.gabarito(fontWeight: FontWeight.w500),),
           ),
           body: Container(
@@ -66,19 +65,14 @@ class Profile extends StatelessWidget {
                         topRight: Radius.circular(20)
                       ),
                       boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 1,
-                          spreadRadius: 0.5
 
-                        )
                       ]
                     ),
                     child: Column(
                       children: [
                         SizedBox(height: 10,),
                         ListTile(
-                          leading: Icon(Icons.person, color: Colors.grey,),
+                          leading: Icon(Icons.person, color: Colors.orange,),
                           title: Text('${teacher.firstname}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),),
                           subtitle: Text('Name', style: TextStyle(color: Colors.grey, fontSize: 13),),
                           trailing: IconButton(
@@ -151,13 +145,15 @@ class Profile extends StatelessWidget {
                               },
                               icon: Icon(Icons.edit, size: 16, color: Karas.primary,)),
                         ),
+                        Container(color: Colors.grey.shade100,height: 1,),
                         ListTile(
-                          leading: Icon(Icons.email, color: Colors.grey,),
+                          leading: Icon(Icons.email, color: Colors.green,),
                           title: Text('${teacher.email}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),),
                           subtitle: Text('Email Address', style: TextStyle(color: Colors.grey, fontSize: 13),),
                         ),
+                        Container(color: Colors.grey.shade100,height: 1,),
                         ListTile(
-                          leading: Icon(Icons.school, color: Colors.grey,),
+                          leading: Icon(Icons.school, color: Colors.cyan,),
                           title: StreamBuilder(
                             stream: FirebaseFirestore.instance.collection('schools').doc(teacher.school).snapshots(),
                             builder: (context, snapshot) {

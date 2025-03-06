@@ -2,12 +2,13 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf_render/pdf_render_widgets.dart';
+import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import 'package:smart_teacher/components/kalubtn.dart';
 import 'package:smart_teacher/helpers/common_methods.dart';
 import 'package:smart_teacher/views/ebooks/pdf_reader.dart';
 import '../../utils/colors.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart' as gfonts;
 
 class Ebooks extends StatefulWidget {
   const Ebooks({super.key});
@@ -107,7 +108,7 @@ class _EbooksState extends State<Ebooks> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('eBOOKS'),
+        title: const Text('eBOOKS',style: TextStyle(fontWeight: FontWeight.bold),),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Karas.danger,
@@ -174,19 +175,19 @@ class _EbooksState extends State<Ebooks> {
               );
             },
             child: Container(
-              width: 100,
-              height: 100,
               padding: const EdgeInsets.all(10),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: PdfViewer.openFile(
+                child: PdfThumbnail.fromFile(
                   file.path,
-                  params: const PdfViewerParams(
-                    pageNumber: 1,
-                    panEnabled: false,
-                    scaleEnabled: false,
+                  currentPage: 1,
+                  backgroundColor: Colors.white,
+                  onPageClicked: (p){
+                    Get.to(()=>PdfReader(path: file.path));
+                  },
+                  loadingIndicator: Center(child: CircularProgressIndicator(),
                   ),
-                ),
+                )
               ),
             ),
           );

@@ -23,6 +23,7 @@ class Subjects extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           TextEditingController _subjectName = TextEditingController();

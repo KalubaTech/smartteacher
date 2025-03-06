@@ -34,5 +34,24 @@
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzZF-L8pqSUusQAa9zb4zAwtpQD5uKfco",
+    authDomain: "smartteacher-e47ab.firebaseapp.com",
+    projectId: "smartteacher-e47ab",
+    storageBucket: "smartteacher-e47ab.firebasestorage.app",
+    messagingSenderId: "732661652000",
+    appId: "1:732661652000:web:aede987169824cadb17a45"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>

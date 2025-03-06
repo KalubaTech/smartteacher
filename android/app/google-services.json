@@ -7,6 +7,35 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:732661652000:android:ff0faa9ea8bd4d34b17a45",
+        "android_client_info": {
+          "package_name": "com.example.smart_teacher_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "732661652000-map8m2784fdf7h7imrnh6ucptf0ikiqu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8LOKByT8_j1x_l001JrFNt8PE9YHX8Yk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "732661652000-map8m2784fdf7h7imrnh6ucptf0ikiqu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:732661652000:android:85547bb6057955b2b17a45",
         "android_client_info": {
           "package_name": "com.kalootech.smart_teacher"
@@ -19,6 +48,14 @@
           "android_info": {
             "package_name": "com.kalootech.smart_teacher",
             "certificate_hash": "09abf4793b50eef3422c813e1191eb932e5f49a1"
+          }
+        },
+        {
+          "client_id": "732661652000-hfcv86iflmgu9cad8irplb66c7g7rgjb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kalootech.smart_teacher",
+            "certificate_hash": "e18369d13ced740e4425cfaf4d9696f8c3f970a1"
           }
         },
         {

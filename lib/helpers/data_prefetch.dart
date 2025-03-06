@@ -1,13 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:smart_teacher/controllers/my_classes_controller.dart';
+import 'package:smart_teacher/controllers/my_school_controller.dart';
+import 'package:smart_teacher/controllers/my_subscription_controller.dart';
+import 'package:smart_teacher/controllers/schools_controoler.dart';
+import 'package:smart_teacher/controllers/subscription_plans_controller.dart';
+import 'package:smart_teacher/controllers/teacher_controller.dart';
+import 'package:smart_teacher/controllers/timetable_controller.dart';
+import 'package:smart_teacher/helpers/common_methods.dart';
 import 'package:smart_teacher/models/class_model.dart';
 import 'package:smart_teacher/models/my_subject_model.dart';
+import 'package:smart_teacher/models/my_subscription.dart';
 import 'package:smart_teacher/models/province_model.dart';
 import 'package:smart_teacher/models/pupil_model.dart';
 import 'package:smart_teacher/models/school_model.dart';
 import 'package:smart_teacher/models/subject_model.dart';
+import 'package:smart_teacher/models/subscription_model.dart';
 import 'package:smart_teacher/models/teacher_model.dart';
 import 'package:get/get.dart';
+import 'package:smart_teacher/models/timetable_model.dart';
 
 import '../controllers/my_subjects_controller.dart';
 
@@ -15,6 +25,11 @@ class DataPrefetch{
   FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   MyClassesController _myClassesController = Get.find();
   MySubjectsController _mySubjectsController = Get.find();
+  MySchoolController _mySchoolController = Get.find();
+  SubscriptionPlansController _subscriptionPlansController = Get.find();
+  MySubscriptionController _mySubscriptionController = Get.find();
+  TimetableController _timetableController = Get.find();
+
 
   Future<List<SchoolModel>>fetchSchoolsByDistrict(district)async{
     print(district);
@@ -78,6 +93,7 @@ class DataPrefetch{
           photo: doc.get('photo')
       );
     }
+
     return _teacher!;
   }
 
@@ -120,10 +136,10 @@ class DataPrefetch{
     _myClassesController.update();
   }
 
-  Future<List<PupilModel>>fetchPupils(classid)async{
+  Future<List<PupilModel>>fetchPupils(schoolid)async{
     List<PupilModel>pupils=[];
 
-    var data = await _firebaseFirestore.collection('pupils').where('class', isEqualTo: classid).get();
+    var data = await _firebaseFirestore.collection('pupils').where('school', isEqualTo: schoolid).get();
 
     if(data.docs.isNotEmpty){
        for(var doc in data.docs){
@@ -142,6 +158,41 @@ class DataPrefetch{
 
     return pupils;
 
+  }
+  Future<List<PupilModel>>fetchClassPupils(classid,schoolid)async{
+    List<PupilModel>pupils=[];
+
+    var data = await _firebaseFirestore.collection('pupils').where('school', isEqualTo: schoolid).get();
+
+    if(data.docs.isNotEmpty){
+      for(var doc in data.docs){
+        PupilModel pupilModel = PupilModel(
+            uid: doc.id,
+            firstname: doc.get('firstname'),
+            lastname: doc.get('lastname'),
+            classid: doc.get('class'),
+            intake: doc.get('intake'),
+            gender: doc.get('gender')
+        );
+
+        pupils.add(pupilModel);
+      }
+    }
+
+    return pupils;
+
+  }
+  Future<PupilModel>fetchPupil(id)async{
+    var data = await _firebaseFirestore.collection('pupils').doc(id).get();
+
+    return PupilModel(
+        uid: data.id,
+        firstname: data.get('firstname'),
+        classid: data.get('class'),
+        gender: data.get('gender'),
+        intake: data.get('intake'),
+        lastname: data.get('lastname')
+    );
   }
   Future<List<SubjectModel>>fetchClassSubjects(school)async{
     List<SubjectModel>subjects=[];
@@ -196,6 +247,149 @@ class DataPrefetch{
       _mySubjectsController.update();
 
      // print("HELLO ${subjects.length}");
+    }catch(e){
+      //print(e);
+    }
+
+    return subjects;
+  }
+  Future<SchoolModel>fetchSchool(schoolid)async{
+
+    SchoolModel _school = SchoolModel(uid: '', name: '', district: '', province: '');
+    try{
+      //print(teacher);
+      //print(classid);
+      var data = await _firebaseFirestore.collection('schools').doc(schoolid).get();
+ 
+      if(data.exists){
+        _school =  SchoolModel(
+            uid: '${data.id}',
+            name: '${data.get('name')}',
+            district: '${data.get('district')}',
+            province: '${data.get('province')}'
+        );
+        _mySchoolController.myschool.value = _school;
+
+      }
+      
+     // print("HELLO ${subjects.length}");
+    }catch(e){
+      //print(e);
+    }
+
+    return _school;
+  }
+
+  fetchSubscriptionPlans()async{
+
+    List<SubscriptionModel> subs = [];
+
+    try{
+      //print(teacher);
+      //print(classid);
+      var data = await _firebaseFirestore.collection('subscription_plans').get();
+
+      if(data.docs.isNotEmpty){
+
+         for(var doc in data.docs){
+           subs.add(SubscriptionModel.fromJson(doc.data()));
+         }
+
+
+      }
+
+      _subscriptionPlansController.sub_plans.value = subs;
+      _subscriptionPlansController.update();
+
+      // print("HELLO ${subjects.length}");
+    }catch(e){
+      //print(e);
+    }
+
+  }
+  fetchMySubscription(teacher)async{
+    var data = await _firebaseFirestore.collection('current_subscription').where('teacher', isEqualTo: teacher).get();
+
+    List<MySubscription> _mysubmodel = [];
+
+    try{
+      if(data.docs.isNotEmpty){
+        for(var doc in data.docs){
+
+          var sub = MySubscription(
+              plan: doc.get('plan'),
+              amount: doc.get('amount'),
+              dateTime: DateTime.parse(doc.get('dateTime')),
+              isActive: doc.get('isActive'),
+              expiry_date: DateTime.parse(doc.get('expiry_date')),
+              uid: doc.id
+          );
+
+          _mysubmodel.add(sub);
+        }
+
+        _mySubscriptionController.my_subscription.value = _mysubmodel;
+        _mySubscriptionController.update();
+
+        print(_mysubmodel);
+      }
+    }catch(e){
+      print(e);
+    }
+
+  }
+
+  fetchMyTimetable(teacher)async{
+    var data = await _firebaseFirestore.collection('timetable').where('teacher', isEqualTo: teacher).get();
+    List<TimetableModel> mytimetables = [];
+
+    
+    if(data.docs.isNotEmpty){
+      for(var doc in data.docs){
+        TimetableModel ttm = TimetableModel(
+            classname: doc.get('class'), 
+            subject: doc.get('subject'), 
+            duration: CommonMethods().timediffInWords(doc.get('starttime'), doc.get('stoptime')),
+            day: doc.get('day'), 
+            starttime: doc.get('starttime'), 
+            stoptime: doc.get('stoptime')
+        );
+
+        mytimetables.add(ttm);
+      }
+
+      _timetableController.timetable.value = mytimetables;
+      _timetableController.update();
+    }
+  }
+  Future<List<MySubjectModel>>fetchAllMySubjects(teacher, school)async{
+    List<MySubjectModel> subjects = [];
+    try{
+      //print(teacher);
+      //print(classid);
+      var data = await _firebaseFirestore.collection('teacher_subject_class').where('teacher', isEqualTo: teacher).get();
+      var allSubjects = await fetchClassSubjects(school);
+
+      // print(allSubjects.length);
+
+      if(data.docs.isNotEmpty){
+        for(var doc in data.docs){
+          // print(doc.get('subject'));
+
+          SubjectModel subject = allSubjects.where((sub)=>sub.uid==doc.get('subject')).first;
+          MySubjectModel mysub = MySubjectModel(
+              subject: subject,
+              teacherid: teacher,
+              classid: doc.get('class'));
+
+          subjects.add(mysub);
+        }
+      }
+
+      _mySubjectsController.mysubjects.value = subjects;
+      _mySubjectsController.update();
+
+      // print("HELLO ${subjects.length}");
     }catch(e){
       //print(e);
     }

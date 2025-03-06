@@ -72,7 +72,11 @@ class Kalutext extends StatelessWidget {
                       decoration: InputDecoration(
                           contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                           border: InputBorder.none,
-                          hintText: '${hintText??""}'
+                          hintText: '${hintText??""}',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13
+                        )
                       ),
                     ),
                   ),

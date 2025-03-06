@@ -21,6 +21,8 @@ class AddTimetable extends StatelessWidget {
   var start = TimeOfDay(hour: 9, minute: 0).obs;
   var stop = TimeOfDay(hour: 17, minute: 0).obs;
 
+  var setAlarm = false.obs;
+
   Future<void> _selectTime(BuildContext context, Rx<TimeOfDay> time) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -264,6 +266,21 @@ class AddTimetable extends StatelessWidget {
                   ),
                 ],
               ),
+           /*   const SizedBox(height: 20),
+              Row(
+                children: [
+                  Text('Set alarm:', style: GoogleFonts.gabarito(fontWeight: FontWeight.bold),),
+                  const SizedBox(width: 10),
+                  Obx(
+                      ()=> Switch(
+                        value: setAlarm.value,
+                        onChanged: (value){
+                          setAlarm.value = value;
+                        }
+                    ),
+                  ),
+                ],
+              ),*/
               const SizedBox(height: 40),
             ],
           ),
@@ -277,7 +294,10 @@ class AddTimetable extends StatelessWidget {
                 'class':classname.value,
                 'teacher':_teacherController.teacher.first.uid
               };
-              FirebaseFirestore.instance.collection('timetable').add(data);
+              FirebaseFirestore.instance.collection('timetable').add(data).then((d){
+                GetStorage().write('${d.id}', '${data}');
+              });
+
               Get.snackbar(
                 "Timetable Added",
                 "Day: ${day.value}, Start: ${start.value.format(context)}, Stop: ${stop.value.format(context)}",
@@ -286,6 +306,32 @@ class AddTimetable extends StatelessWidget {
             },
             child: const Text('Save Timetable'),
           ),
+          SizedBox(height: 20,),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: 10
+            ),
+            child: StreamBuilder(
+                stream: FirebaseFirestore.instance.collection('timetable').where('teacher', isEqualTo: _teacherController.teacher.first.uid).snapshots(),
+                builder: (c,s){
+                  return s.hasData && s.data!.docs.isNotEmpty?
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...
+                          s.data!.docs.map((item)=>Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4
+                              ),
+                              child: Text('${item.get('starttime')} - ${item.get('stoptime')}   ${item.get('subject')}     ${item.get('class')}')
+                          )).toList()
+                        ],
+                      )
+                      :Container();
+                }
+            ),
+          )
         ],
       ),
     );

@@ -3,7 +3,9 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:get/get.dart';
 import 'package:smart_teacher/controllers/my_classes_controller.dart';
+import 'package:smart_teacher/controllers/my_subscription_controller.dart';
 import 'package:smart_teacher/controllers/teacher_controller.dart';
+import 'package:smart_teacher/models/my_subscription.dart';
 
 import '../views/auth_screens/sign_in_with_google.dart';
 
@@ -14,6 +16,7 @@ class AuthService {
 
   TeacherController _teacherController = Get.find();
   MyClassesController _myClassesController = Get.find();
+  MySubscriptionController _mySubscription = Get.find();
 
   Future<User?> signInWithGoogle() async {
     try {
@@ -48,6 +51,8 @@ class AuthService {
     _teacherController.update();
     GetStorage().remove('user');
     _myClassesController.myclasses.clear();
+    _mySubscription.my_subscription.clear();
+    _mySubscription.update();
     Get.offAll(()=>LoginScreen());
 
   }

@@ -28,7 +28,7 @@ class HomeGridItemContainer extends StatelessWidget {
                 Expanded(
                     child: Image.asset(icon, width: 90,)
                 ),
-                Text(label, style: GoogleFonts.passionOne(fontSize: 18, fontWeight: FontWeight.w600, color: Karas.primary.withOpacity(0.5)),)
+                Text(label, style: GoogleFonts.passionOne(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black),)
               ],
             ),
           ),

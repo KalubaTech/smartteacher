@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:draggable_home/draggable_home.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_teacher/components/kalubtn.dart';
 import 'package:smart_teacher/components/kalutext.dart';
@@ -17,6 +18,7 @@ import 'package:get/get.dart';
 import 'package:smart_teacher/views/page_anchor.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
+import 'package:smart_teacher/views/preset_screens/preset_classes.dart';
 
 class ProRegister extends StatelessWidget {
   ProRegister({super.key});
@@ -31,6 +33,8 @@ class ProRegister extends StatelessWidget {
   var imagepath = ''.obs;
   var selectedSchool = <SchoolModel>[].obs;
   var selectedDistrict = ''.obs;
+  
+  TextEditingController _newschool = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,7 @@ class ProRegister extends StatelessWidget {
     return DraggableHome(
       appBarColor: Karas.primary,
         title: Container(
-          child: Text('Add Your School', style: TextStyle(color: Colors.white),),
+          child: Text('Select Your School', style: GoogleFonts.gabarito(color: Colors.black, fontWeight: FontWeight.bold),),
         ),
         headerWidget: Container(
           decoration: BoxDecoration(
@@ -53,7 +57,7 @@ class ProRegister extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Congrats!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange),),
+                Text('Congrats!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                 Text('${_teacherController.teacher.first.firstname}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),),
               ],
             ),
@@ -68,7 +72,7 @@ class ProRegister extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Text(' Where do you teach?', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: Karas.primary),),
+              Text(' Where do you teach?', style: GoogleFonts.gabarito(fontWeight: FontWeight.w500, fontSize: 18, color: Colors.black),),
                 SizedBox(height: 20,),
                 Card(
                   child: Container(
@@ -155,19 +159,96 @@ class ProRegister extends StatelessWidget {
                               if (snapshot.hasError) {
                                 return Text("Error loading schools");
                               }
-                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                return Text("No schools available for the selected district");
+                              if (selectedDistrict.value.isEmpty) {
+                                return Text("Select province and district");
                               }
 
                               var schools = snapshot.data!;
                               return DropdownSearch<String>(
                                 key: Key('school-dropdown'),
-                                items: (x, y) => schools.map((school) => school.name).toList(),
+                                items: (x, y) => [
+                                  'Add new',
+                                  ...
+                                  schools.map((school) => school.name).toList()
+                                ],
                                 selectedItem: selectedSchool.isNotEmpty ? selectedSchool.first.name : null,
                                 onChanged: (item) {
-                                  var selected = schools.firstWhere((school) => school.name == item);
-                                  selectedSchool.value = [selected];
-                                  print('Selected school: ${selected.uid}');
+                                  if(item=='Add new'){
+                                    Get.bottomSheet(
+                                      Container(
+                                        height: 240,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: 45,
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(10)
+                                              ),
+                                            ),
+                                            SizedBox(height: 8,),
+                                            Expanded(
+                                              child: Container(
+                                                width: double.infinity,
+                                                decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.only(
+                                                        topRight: Radius.circular(20),
+                                                        topLeft: Radius.circular(20)
+                                                    )
+                                                ),
+                                                child: ListView(
+                                                  shrinkWrap: true,
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 20
+                                                  ),
+                                                  children: [
+                                                    SizedBox(height: 20,),
+                                                    Text('Add your school', style: GoogleFonts.gabarito(fontWeight: FontWeight.bold, fontSize: 24),),
+                                                    SizedBox(height: 20,),
+                                                    Kalutext(
+                                                        controller: _newschool,
+                                                        hintText: 'Enter School Name',
+                                                        labelText: 'School name:',
+                                                        border: Border.all(),
+                                                    ),
+                                                    SizedBox(height: 10,),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                      children: [
+                                                        ElevatedButton(
+                                                            onPressed: (){
+                                                              _newschool.text.isNotEmpty?
+                                                              FirebaseFirestore
+                                                                  .instance
+                                                                  .collection('schools')
+                                                                  .add({'district':selectedDistrict.value, 'province':selectedProvince.value.first.province, 'name':_newschool.text}).then((v){
+                                                                    selectedSchool.value.add(SchoolModel(uid: v.id, name: _newschool.text, district: selectedDistrict.value, province: ''));
+                                                                    selectedSchool.refresh();
+                                                                    Fluttertoast.showToast(msg: 'Added successfully!');
+                                                                    Get.back();
+                                                              })
+                                                              :null;
+                                                            },
+                                                            child: Text('Save')
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    );
+                                  }else{
+                                    var selected = schools.firstWhere((school) => school.name == item);
+                                    selectedSchool.value = [selected];
+                                    print('Selected school: ${selected.uid}');
+                                  }
                                 },
                                 decoratorProps: DropDownDecoratorProps(
                                   decoration: InputDecoration(
@@ -200,7 +281,8 @@ class ProRegister extends StatelessWidget {
                           _teacherController.update();
                           await FirebaseFirestore.instance.collection('teachers').doc(_teacherController.teacher.first.uid)
                               .update({'school':selectedSchool.value.first.uid});
-                          Get.offAll(()=>PageAnchor());
+                          Get.to(()=>PresetClasses(schoolid: selectedSchool.value.first.uid));
+                          //Get.offAll(()=>PageAnchor());
                         },
                       borderRadius: 40,
                       height: 45,

@@ -3,8 +3,8 @@ class PupilModel{
   String firstname;
   String lastname;
   String gender;
-  String intake;
-  String classid;
+  List intake;
+  List classid;
 
   PupilModel({required this.uid, required this.firstname, required this.classid, required this.gender, required this.intake, required this.lastname});
 }

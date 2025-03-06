@@ -28,7 +28,8 @@ class AuthHelper{
              'email':teacher.email,
              'phone':teacher.phone,
              'password':teacher.password,
-             'photo':teacher.photo
+             'photo':teacher.photo,
+             'school':''
            };
           var doc = await _fs.collection('teachers').add(data);
 
@@ -54,11 +55,17 @@ class AuthHelper{
              phone: _teachersData.docs.first.get('phone'),
              password: _teachersData.docs.first.get('password'),
              photo: _teachersData.docs.first.get('photo'),
-             school: _teachersData.docs.first.get('school')
+             school: _teachersData.docs.first.get('school') //Get.offAll(()=>ProRegister());
          );
+
         _teacherController.teacher.value.add(teacher);
         _teacherController.update();
-        Get.offAll(()=>PageAnchor());
+
+        if(_teacherController.teacher.value.first.school == ''){
+          Get.offAll(()=>ProRegister());
+        }else{
+          Get.offAll(()=>PageAnchor(), transition: Transition.fadeIn);
+        }
       }
 
       GetStorage().write('user', teacher.uid);
@@ -87,6 +94,95 @@ class AuthHelper{
     _teacherController.teacher.add(teacher);
     _teacherController.update();
 
-    Get.offAll(()=>PageAnchor(), transition: Transition.leftToRightWithFade);
+    if(teacher.school==''){
+      Get.offAll(()=>ProRegister(), transition: Transition.fadeIn);
+    }else{
+      Get.offAll(()=>PageAnchor(), transition: Transition.fadeIn);
+    }
+
+  }
+
+  Future<TeacherModel>registerWithEmailAndPassword(String name, String email, String password)async{
+    TeacherModel _teacher = TeacherModel(
+        uid: '',
+        firstname: '',
+        lastname: '',
+        email: '',
+        phone: '',
+        password: '',
+        school: '');
+
+    try{
+      var data = {
+        'firstname': name,
+        'lastname': '',
+        'email': email,
+        'phone': '',
+        'password': password,
+        'school': ''
+      };
+      DocumentReference d = await _fs.collection('teachers').add(data);
+
+      // Fetch the added document
+      DocumentSnapshot docSnapshot = await d.get();
+
+      // Create TeacherModel from the document data
+      _teacher = TeacherModel(
+        uid: docSnapshot.id,
+        firstname: docSnapshot['firstname'], // Access fields from the document
+        lastname: docSnapshot['lastname'],
+        email: docSnapshot['email'],
+        phone: docSnapshot['phone'],
+        password: docSnapshot['password'],
+        school: docSnapshot['school'],
+      );
+    }catch(e){
+      print(e);
+    }
+
+    _teacherController.teacher.value.add(_teacher);
+    _teacherController.update();
+
+    return _teacher;
+
+  }
+
+  Future<TeacherModel>loginWithEmailAndPassword(String email, String password)async{
+    TeacherModel _teacher = TeacherModel(
+        uid: '',
+        firstname: '',
+        lastname: '',
+        email: '',
+        phone: '',
+        password: '',
+        school: '');
+
+    try{
+      var d = await _fs.collection('teachers').where('email', isEqualTo: email).where('password', isEqualTo: password).get();
+
+      // Fetch the added document
+        if(d.docs.isNotEmpty){
+          var docSnapshot = d.docs.first;
+          // Create TeacherModel from the document data
+          _teacher = TeacherModel(
+            uid: docSnapshot.id,
+            firstname: docSnapshot['firstname'], // Access fields from the document
+            lastname: docSnapshot['lastname'],
+            email: docSnapshot['email'],
+            phone: docSnapshot['phone'],
+            password: docSnapshot['password'],
+            school: docSnapshot['school'],
+          );
+        }
+
+    }catch(e){
+      print(e);
+    }
+
+    _teacherController.teacher.value.add(_teacher);
+    _teacherController.update();
+
+    return _teacher;
+
   }
 }
