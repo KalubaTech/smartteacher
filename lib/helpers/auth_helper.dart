@@ -29,6 +29,7 @@ class AuthHelper{
              'phone':teacher.phone,
              'password':teacher.password,
              'photo':teacher.photo,
+             'isAdmin': teacher.isAdmin,
              'school':''
            };
           var doc = await _fs.collection('teachers').add(data);
@@ -41,7 +42,8 @@ class AuthHelper{
                phone: teacher.phone,
                password: teacher.password,
                photo: teacher.photo,
-               school: teacher.school
+               school: teacher.school,
+               isAdmin: false
            );
            _teacherController.teacher.value.add(teacher);
            _teacherController.update();
@@ -55,7 +57,8 @@ class AuthHelper{
              phone: _teachersData.docs.first.get('phone'),
              password: _teachersData.docs.first.get('password'),
              photo: _teachersData.docs.first.get('photo'),
-             school: _teachersData.docs.first.get('school') //Get.offAll(()=>ProRegister());
+             school: _teachersData.docs.first.get('school'),
+             isAdmin: _teachersData.docs.first.get('isAdmin') //Get.offAll(()=>ProRegister());
          );
 
         _teacherController.teacher.value.add(teacher);
@@ -110,7 +113,8 @@ class AuthHelper{
         email: '',
         phone: '',
         password: '',
-        school: '');
+        school: '',
+        isAdmin: false);
 
     try{
       var data = {
@@ -135,6 +139,7 @@ class AuthHelper{
         phone: docSnapshot['phone'],
         password: docSnapshot['password'],
         school: docSnapshot['school'],
+        isAdmin: false,
       );
     }catch(e){
       print(e);
@@ -155,7 +160,9 @@ class AuthHelper{
         email: '',
         phone: '',
         password: '',
-        school: '');
+        school: '',
+        isAdmin: false
+    );
 
     try{
       var d = await _fs.collection('teachers').where('email', isEqualTo: email).where('password', isEqualTo: password).get();
@@ -172,6 +179,7 @@ class AuthHelper{
             phone: docSnapshot['phone'],
             password: docSnapshot['password'],
             school: docSnapshot['school'],
+            isAdmin: docSnapshot['isAdmin'],
           );
         }
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pdfrx/pdfrx.dart';
 
 class PdfReader extends StatelessWidget {
   String path;
@@ -11,9 +10,10 @@ class PdfReader extends StatelessWidget {
       appBar: AppBar(
         title: Text(''),
       ),
-      body: PdfViewer.file(path, params: PdfViewerParams(
+      body: Container() /*PdfViewer.file(path, params: PdfViewerParams(
         backgroundColor: Colors.white
-      ),),
+      )*/,
+
     );
   }
 }

@@ -9,6 +9,9 @@ import 'package:smart_teacher/models/teacher_model.dart';
 import 'package:smart_teacher/utils/colors.dart';
 import 'package:get/get.dart';
 
+import '../../services/auth_service.dart';
+import '../my_school/my_school.dart';
+
 class Profile extends StatelessWidget {
   Profile({super.key});
 
@@ -153,7 +156,9 @@ class Profile extends StatelessWidget {
                         ),
                         Container(color: Colors.grey.shade100,height: 1,),
                         ListTile(
+                          onTap: ()=>Get.to(()=>MySchool(), transition: Transition.fadeIn),
                           leading: Icon(Icons.school, color: Colors.cyan,),
+                          trailing: Icon(Icons.arrow_forward),
                           title: StreamBuilder(
                             stream: FirebaseFirestore.instance.collection('schools').doc(teacher.school).snapshots(),
                             builder: (context, snapshot) {
@@ -162,6 +167,12 @@ class Profile extends StatelessWidget {
                             }
                           ),
                           subtitle: Text('School', style: TextStyle(color: Colors.grey, fontSize: 13),),
+                        ),
+                        Container(color: Colors.grey.shade100,height: 1,),
+                        ListTile(
+                          onTap: () async =>await AuthService().signOut(),
+                          leading: Icon(Icons.logout, color: Colors.red,),
+                          title: Text('Log out'),
                         ),
                       ],
                     ),

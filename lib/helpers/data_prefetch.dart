@@ -43,7 +43,8 @@ class DataPrefetch{
               uid: doc.id,
               name: doc.get('name'),
               district: doc.get('district'),
-              province: doc.get('province')
+              province: doc.get('province'),
+              type: doc.get('type'),
           );
           schools.add(_school);
       }
@@ -90,7 +91,8 @@ class DataPrefetch{
           phone: doc.get('phone'),
           password: doc.get('password'),
           school: doc.get('school'),
-          photo: doc.get('photo')
+          photo: doc.get('photo'), 
+          isAdmin: doc.get('isAdmin')
       );
     }
 
@@ -137,6 +139,7 @@ class DataPrefetch{
   }
 
   Future<List<PupilModel>>fetchPupils(schoolid)async{
+
     List<PupilModel>pupils=[];
 
     var data = await _firebaseFirestore.collection('pupils').where('school', isEqualTo: schoolid).get();
@@ -144,12 +147,14 @@ class DataPrefetch{
     if(data.docs.isNotEmpty){
        for(var doc in data.docs){
           PupilModel pupilModel = PupilModel(
-              uid: doc.id, 
+              uid: doc.id,
               firstname: doc.get('firstname'),
               lastname: doc.get('lastname'),
               classid: doc.get('class'),
               intake: doc.get('intake'),
-              gender: doc.get('gender')
+              gender: doc.get('gender'), 
+              email: doc.get('email'), 
+              photo: doc.get('photo')
           );
 
           pupils.add(pupilModel);
@@ -172,7 +177,9 @@ class DataPrefetch{
             lastname: doc.get('lastname'),
             classid: doc.get('class'),
             intake: doc.get('intake'),
-            gender: doc.get('gender')
+            gender: doc.get('gender'),
+            email: doc.get('email'), 
+            photo: doc.get('photo')
         );
 
         pupils.add(pupilModel);
@@ -191,7 +198,9 @@ class DataPrefetch{
         classid: data.get('class'),
         gender: data.get('gender'),
         intake: data.get('intake'),
-        lastname: data.get('lastname')
+        lastname: data.get('lastname'),
+       email: data.get('email'), 
+        photo: data.get('photo')
     );
   }
   Future<List<SubjectModel>>fetchClassSubjects(school)async{
@@ -255,7 +264,7 @@ class DataPrefetch{
   }
   Future<SchoolModel>fetchSchool(schoolid)async{
 
-    SchoolModel _school = SchoolModel(uid: '', name: '', district: '', province: '');
+    SchoolModel _school = SchoolModel(uid: '', name: '', district: '', province: '', type: '');
     try{
       //print(teacher);
       //print(classid);
@@ -266,7 +275,8 @@ class DataPrefetch{
             uid: '${data.id}',
             name: '${data.get('name')}',
             district: '${data.get('district')}',
-            province: '${data.get('province')}'
+            province: '${data.get('province')}',
+            type: '${data.get('type')}',
         );
         _mySchoolController.myschool.value = _school;
 

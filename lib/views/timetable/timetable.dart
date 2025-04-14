@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_teacher/controllers/teacher_controller.dart';
 import 'package:smart_teacher/views/timetable/add_timetable.dart';
+import 'package:smart_teacher/views/timetable/edit_timetable.dart';
 import '../../utils/colors.dart';
 import 'package:flutter_timetable/flutter_timetable.dart' as ttable;
 
@@ -160,19 +161,40 @@ class _TimetableState extends State<Timetable> {
                   onLongPress: () {
                     Get.defaultDialog(
                       title: 'Action',
+                      titlePadding: EdgeInsets.only(top: 10, bottom: 0),
+                      titleStyle: GoogleFonts.gabarito(fontSize: 18, fontWeight: FontWeight.bold),
                       content: Container(
-                        child: Column(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 20
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Karas.primary,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ElevatedButton(
+                            SizedBox(width: 20,),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  FirebaseFirestore
+                                      .instance.collection('timetable')
+                                      .doc(item.data!.split(',').first)
+                                      .delete();
+                                  Get.back();
+                                },
+                                child: Text('Delete'),
+                              ),
+                            ),
+                            SizedBox(width: 20,),
+                            Expanded(child: ElevatedButton(
                               onPressed: () {
-                                FirebaseFirestore
-                                    .instance.collection('timetable')
-                                    .doc(item.data!.split(',').first)
-                                    .delete();
-                                Get.back();
+                                Get.to(()=>EditTimetable(item));
                               },
-                              child: Text('Delete'),
-                            )
+                              child: Text('Edit'),
+                            )),
+                            SizedBox(width: 20,),
                           ],
                         ),
                       ),
@@ -184,7 +206,7 @@ class _TimetableState extends State<Timetable> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -193,8 +215,58 @@ class _TimetableState extends State<Timetable> {
                     child: Center(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              InkWell(
+                                onTap: (){
+                                  Get.defaultDialog(
+                                    title: 'Action',
+                                    titlePadding: EdgeInsets.only(top: 10, bottom: 0),
+                                    titleStyle: GoogleFonts.gabarito(fontSize: 18, fontWeight: FontWeight.bold),
+                                    content: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 20
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Karas.primary,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(width: 20,),
+                                          Expanded(
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                FirebaseFirestore
+                                                    .instance.collection('timetable')
+                                                    .doc(item.data!.split(',').first)
+                                                    .delete();
+                                                Get.back();
+                                              },
+                                              child: Text('Delete'),
+                                            ),
+                                          ),
+                                          SizedBox(width: 20,),
+                                          Expanded(child: ElevatedButton(
+                                            onPressed: () {
+                                              Get.to(()=>EditTimetable(item));
+                                            },
+                                            child: Text('Edit'),
+                                          )),
+                                          SizedBox(width: 20,),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                  child: Icon(Icons.more_horiz)
+                              ),
+                              SizedBox(width: 10,)
+                            ],
+                          ),
                           Text(
                             '${item.data!.split(',').last}' ?? "",
                             style: GoogleFonts.gabarito(fontSize: 14),

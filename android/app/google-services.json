@@ -59,6 +59,14 @@
           }
         },
         {
+          "client_id": "732661652000-um8kau6512q3b4fb1u6d2ojh67t38cl2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kalootech.smart_teacher",
+            "certificate_hash": "0b62b5b144c12785d079441726682f3a64975701"
+          }
+        },
+        {
           "client_id": "732661652000-map8m2784fdf7h7imrnh6ucptf0ikiqu.apps.googleusercontent.com",
           "client_type": 3
         }

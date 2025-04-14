@@ -3,11 +3,12 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  url_launcher_linux
+  audioplayers_linux
+  file_saver
+  open_file_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  pdfrx
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

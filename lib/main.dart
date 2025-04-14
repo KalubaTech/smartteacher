@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:admob_easy/ads/admob_easy.dart';
 import 'package:firebase_notifications_handler/firebase_notifications_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:smart_teacher/controllers/classes_controller.dart';
@@ -11,6 +14,7 @@ import 'package:smart_teacher/controllers/schools_controoler.dart';
 import 'package:smart_teacher/controllers/subjects_controller.dart';
 import 'package:smart_teacher/controllers/teacher_controller.dart';
 import 'package:smart_teacher/controllers/timetable_controller.dart';
+import 'package:smart_teacher/services/notification_service.dart';
 import 'package:smart_teacher/utils/colors.dart';
 import 'package:smart_teacher/views/auth_screens/pro_register.dart';
 import 'package:smart_teacher/views/auth_screens/sign_in.dart';
@@ -19,6 +23,7 @@ import 'package:smart_teacher/views/auth_screens/sign_in_with_google.dart';
 import 'package:smart_teacher/views/preset_screens/preset_classes.dart';
 
 import 'controllers/globals.dart';
+import 'controllers/meeting_participants_controller.dart';
 import 'controllers/my_classes_controller.dart';
 import 'controllers/my_subjects_controller.dart';
 import 'controllers/subscription_plans_controller.dart';
@@ -36,12 +41,18 @@ void main() async{
   Get.put(SubscriptionPlansController());
   Get.put(MySubjectsController());
   Get.put(TimetableController());
+  Get.put(ParticipantController());
   Get.put(Globals());
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage().initStorage;
+
+/*  NotificationService().initializeNotifications();
+  NotificationService().showPersistentNotification();
+  NotificationService().createNotificationChannel();*/
 
   AdmobEasy.instance.initialize(
       androidRewardedAdID: 'ca-app-pub-2615276835858154/4882719642',
@@ -50,6 +61,20 @@ void main() async{
       //androidAppOpenAdID: 'ca-app-pub-3940256099942544/9257395921',
       testDevices: ['543E082C0B43E6BF17AF6D4F72541F51']
   );
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(MyApp());
+     
+  });
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: Karas.primary,
+    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarDividerColor: Karas.primary,
+  ));
+
+
   runApp(MyApp());
 }
 

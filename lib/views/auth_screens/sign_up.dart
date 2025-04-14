@@ -28,7 +28,8 @@ class SignUp extends StatelessWidget {
           phone: _phoneController.text,
           password: _passwordController.text,
           photo: '',
-          school: ''
+          school: '',
+          isAdmin: false
       );
 
       AuthHelper().signUp(teacher: teacherModel);

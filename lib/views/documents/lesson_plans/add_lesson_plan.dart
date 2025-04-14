@@ -1221,7 +1221,7 @@ class _AddLessonPlanState extends State<AddLessonPlan> {
                 vertical: 10
               ),
               child: isLoading?
-                  CircularProgressIndicator():
+                  Center(child: CircularProgressIndicator()):
 
               ElevatedButton(
                   onPressed: () async {

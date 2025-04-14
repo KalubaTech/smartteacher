@@ -120,7 +120,8 @@ class LoginScreen extends StatelessWidget {
                               phone: user!.phoneNumber??'',
                               password: '',
                               photo: '${user!.photoURL}',
-                              school: ''
+                              school: '',
+                              isAdmin: false
                           );
 
                           AuthHelper().signUp(teacher: _teacher);
@@ -143,7 +144,7 @@ class LoginScreen extends StatelessWidget {
                         Text('By signing in, you agree to the', style: TextStyle(fontSize: 12),),
                         TextButton(onPressed: (){
                           Get.to(()=>TermsAndConditionsPage(), transition: Transition.fade);
-                        }, child: Text('Terms & conditions'))
+                        }, child: Text('Terms & conditions', style: TextStyle(color: Karas.primary),))
                       ],
                     )
                     /*      Row(

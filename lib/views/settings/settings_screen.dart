@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:smart_teacher/helpers/common_methods.dart';
 import 'package:smart_teacher/services/alarm_service.dart';
 import 'package:smart_teacher/views/settings/about_us.dart';
+import 'package:smart_teacher/views/settings/admin_control_panel.dart';
 import 'package:smart_teacher/views/settings/subscription/subscription.dart';
 
 import '../../controllers/teacher_controller.dart';
@@ -39,6 +40,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   TeacherController _teacherController = Get.find();
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    isBioSwitchedOn.value = GetStorage().hasData('biometrics') ? GetStorage().read('biometrics') : false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -63,9 +71,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: isBioSwitchedOn.value,
                         onChanged: (value){
                           isBioSwitchedOn.value = value;
-                          if(value){
-                            GetStorage().write('biometrics', value);
-                          }
+
+                          GetStorage().write('biometrics', value);
+
                           setState(() {
 
                           });
@@ -104,7 +112,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: Text('Contact us'),
               trailing: Icon(Icons.chevron_right),
             ),
-            Divider(color: Colors.grey.shade200,),
+            !_teacherController.teacher.first.isAdmin?
+            Column(
+              children: [
+                Divider(color: Colors.grey.shade100,),
+                ListTile(
+                  onTap: (){
+                    //Get.to(()=>Subscription(), transition: Transition.fade);
+                    Get.to(()=>AdminControlPanel(), transition: Transition.fade);
+                  },
+                  leading: Icon(Icons.admin_panel_settings),
+                  title: Text('Admin control panel'),
+                  trailing: Icon(Icons.chevron_right),
+                ),
+              ],
+            ) : Container(),
+            Divider(color: Colors.grey.shade100,),
             SizedBox(height: 20,),
             Container(
               padding: EdgeInsets.all(20),

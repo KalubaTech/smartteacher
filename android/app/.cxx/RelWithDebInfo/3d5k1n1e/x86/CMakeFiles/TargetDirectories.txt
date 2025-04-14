@@ -1,0 +1,2 @@
+C:/Users/Henry Avalon/smart_teacher/android/app/.cxx/RelWithDebInfo/3d5k1n1e/x86/CMakeFiles/edit_cache.dir
+C:/Users/Henry Avalon/smart_teacher/android/app/.cxx/RelWithDebInfo/3d5k1n1e/x86/CMakeFiles/rebuild_cache.dir

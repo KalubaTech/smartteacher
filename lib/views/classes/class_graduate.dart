@@ -209,7 +209,7 @@ class _ClassGraduateState extends State<ClassGraduate> {
                                             await FirebaseFirestore.instance
                                                 .collection('pupils')
                                                 .doc(pupil.uid)
-                                                .update({'class': newclasses});
+                                                .update({'class': newclasses, 'currentClass':classid});
                                           }
 
                                           setInnerState(() {

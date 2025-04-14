@@ -56,9 +56,15 @@ class _ClassListState extends State<ClassList> {
             child: Column(
               children: [
                 Container(
+                  margin: EdgeInsets.all(15),
                   padding: EdgeInsets.symmetric(
                     horizontal: 20,
-                    vertical: 10
+                    vertical: 20
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade300)
                   ),
                   child: Row(
                     children: [

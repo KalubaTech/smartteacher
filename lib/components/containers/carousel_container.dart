@@ -25,8 +25,8 @@ class CarouselContainer extends StatelessWidget {
         child: Stack(
           children: [
             Positioned(
-                left: 10,
-                top: 10,
+                left: 20,
+                top: 20,
                 child: Image.asset(backImage, width: 60,)),
             child
           ],

@@ -6,6 +6,7 @@ class MySchoolController extends GetxController{
       uid: '',
       name: '',
       district: '',
-      province: ''
+      province: '',
+      type: ''
   ).obs;
 }

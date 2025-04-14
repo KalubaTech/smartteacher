@@ -1,6 +1,7 @@
 import 'package:admob_easy/admob_easy.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:draggable_home/draggable_home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
@@ -12,17 +13,22 @@ import 'package:smart_teacher/controllers/my_subscription_controller.dart';
 import 'package:smart_teacher/controllers/subscription_plans_controller.dart';
 import 'package:smart_teacher/controllers/teacher_controller.dart';
 import 'package:smart_teacher/controllers/timetable_controller.dart';
+import 'package:smart_teacher/meetings/meetings.dart';
 import 'package:smart_teacher/services/auth_service.dart';
 import 'package:smart_teacher/services/local_auth_service.dart';
 import 'package:smart_teacher/utils/colors.dart';
 import 'package:get/get.dart';
+import 'package:smart_teacher/views/chat/chat_heads.dart';
 import 'package:smart_teacher/views/classes/classes.dart';
+import 'package:smart_teacher/views/classes/online_classes.dart';
 import 'package:smart_teacher/views/documents/documents.dart';
 import 'package:smart_teacher/views/ebooks/ebooks.dart';
 import 'package:smart_teacher/views/settings/subscription/subscription.dart';
 import 'package:smart_teacher/views/timetable/timetable.dart';
 
 import '../../helpers/common_methods.dart';
+import '../announcements/notice_board.dart';
+import '../notifications/notifications.dart';
 
 class Dashboard extends StatelessWidget {
   Dashboard({super.key});
@@ -71,7 +77,7 @@ class Dashboard extends StatelessWidget {
         builder: (tcontroller)
     {
       return DraggableHome(
-          backgroundColor: Colors.white,
+          backgroundColor: Karas.background,
           appBarColor: Karas.primary,
           title: Container(
             child: Row(
@@ -98,7 +104,31 @@ class Dashboard extends StatelessWidget {
                               fontSize: 19, color: Colors.black),)
                       ],
                     )
-                )
+                ),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('notifications')
+                      .where('targets', arrayContains: 'teachers')
+                  //.where('deletedIds', whereNotIn: [[_parentController.parent.first.uid]])
+                      .where('seenIds', whereNotIn: [[_teacherController.teacher.first.uid]])
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    int unseenCount = 0;
+
+                    if (snapshot.hasData) {
+                      unseenCount = snapshot.data!.docs.length;
+                    }
+
+                    return IconButton(
+                      onPressed: () => Get.to(() => Notifications()),
+                      icon: Badge(
+                        isLabelVisible: unseenCount > 0,
+                        label: Text(unseenCount.toString()),
+                        child: const Icon(Icons.notifications, color: Colors.white),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -147,24 +177,50 @@ class Dashboard extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 10,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Teacher'),
-                        Text('${_teacherController.teacher.first.firstname}',
-                          style: GoogleFonts.passionOne(
-                              fontSize: 24
-                          ),)
-                      ],
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Teacher', style: GoogleFonts.aladin(),),
+                          Text('${_teacherController.teacher.first.firstname}',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.passionOne(
+                                fontSize: 24,
+                            ),)
+                        ],
+                      ),
                     ),
-                    Spacer(),
-                    IconButton(
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('notifications')
+                          .where('targets', arrayContains: 'teachers')
+                      //.where('deletedIds', whereNotIn: [[_parentController.parent.first.uid]])
+                          .where('seenIds', whereNotIn: [[_teacherController.teacher.first.uid]])
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        int unseenCount = 0;
+
+                        if (snapshot.hasData) {
+                          unseenCount = snapshot.data!.docs.length;
+                        }
+
+                        return IconButton(
+                          onPressed: () => Get.to(() => Notifications()),
+                          icon: Badge(
+                            isLabelVisible: unseenCount > 0,
+                            label: Text(unseenCount.toString()),
+                            child: const Icon(Icons.notifications, color: Colors.white),
+                          ),
+                        );
+                      },
+                    ),
+              /*      IconButton(
                         onPressed: () async {
                           await AuthService().signOut();
                         },
                         icon: Icon(Icons.logout)
-                    )
+                    )*/
                   ],
                 ),
                 SizedBox(height: 20,)
@@ -185,6 +241,7 @@ class Dashboard extends StatelessWidget {
                   showIndicator: true,
                   autoPlayInterval: Duration(seconds: 8),
                   autoPlay: true,
+                  viewportFraction: 0.93,
                   slideIndicator: CircularWaveSlideIndicator(),
                 ),
                 items: [
@@ -375,10 +432,26 @@ class Dashboard extends StatelessWidget {
                                               },
                                               child: Container(
                                                 decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                        colors: [
+                                                          Karas.primary,
+                                                          Color(0xfe053335)
+                                                        ],
+                                                      begin: Alignment.topCenter,
+                                                      end: Alignment.bottomCenter
+                                                    ),
                                                     borderRadius: BorderRadius
                                                         .circular(10),
                                                     border: Border.all(
-                                                        color: Colors.yellow)
+                                                        color: Colors.yellow,
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.yellow,
+                                                        spreadRadius: 2,
+                                                        blurRadius: 3
+                                                      )
+                                                    ]
                                                 ),
                                                 padding: EdgeInsets.symmetric(
                                                   horizontal: 8,
@@ -386,7 +459,7 @@ class Dashboard extends StatelessWidget {
                                                 ),
                                                 child: Text('Pay to remove ads',
                                                   style: TextStyle(
-                                                      color: Colors.deepOrange,
+                                                      color: Colors.yellow,
                                                       fontSize: 12,
                                                       fontWeight: FontWeight
                                                           .w600),),
@@ -407,7 +480,51 @@ class Dashboard extends StatelessWidget {
                   ),
                 ]
             ),   
-            SizedBox(height: 0,),
+            SizedBox(height: 20,),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 15
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 6,
+                    decoration: BoxDecoration(
+                        color: Color(0xff1d714a),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20))
+                    ),
+                  ),
+                  SizedBox(width: 0,),
+                  Container(
+                     padding: EdgeInsets.symmetric(horizontal: 10),
+                     decoration: BoxDecoration(
+                         color: Color(0xff1d714a),
+                       borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10))
+                     ),
+                      child: Text('Activities', style: GoogleFonts.aladin(fontSize: 20, color: Colors.yellow),)
+                  ),
+                  SizedBox(width: 0,),
+                  Expanded(
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: [
+                                  Color(0xff1d714a),
+                                  Color(0xff1e7b4e),
+                                  Color(0xff2ed07e),
+                                  Color(0xff1bceae),
+                                ]
+                            ),
+                            borderRadius: BorderRadius.only(topRight: Radius.circular(20))
+                        ),
+                      )
+                  )
+                ],
+              ),
+            ),
             GridView(
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -442,13 +559,100 @@ class Dashboard extends StatelessWidget {
                 HomeGridItemContainer(
                     icon: 'assets/stamp.png',
                     label: 'Documents File',
-                    backgroundColor: Karas.secondary.withOpacity(0.3),
+                    backgroundColor: Karas.secondary.withValues(alpha: 0.3),
                     onclick: () {
                       Get.to(() => Documents(), transition: Transition.fade);
                     }
                 ),
               ],
-            )
+            ),
+            SizedBox(height: 20,),
+            Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: 15
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 6,
+                    decoration: BoxDecoration(
+                        color: Color(0xff1d714a),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20))
+                    ),
+                  ),
+                  SizedBox(width: 0,),
+                  Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                          color: Color(0xff1d714a),
+                          borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10))
+                      ),
+                      child: Text('Commucation', style: GoogleFonts.aladin(fontSize: 20, color: Colors.yellow),)
+                  ),
+                  SizedBox(width: 0,),
+                  Expanded(
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: [
+                                  Color(0xff1d714a),
+                                  Color(0xff1e7b4e),
+                                  Color(0xff2ed07e),
+                                  Color(0xff1bceae),
+                                ]
+                            ),
+                            borderRadius: BorderRadius.only(topRight: Radius.circular(20))
+                        ),
+                      )
+                  )
+                ],
+              ),
+            ),
+            GridView(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2),
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              children: [
+                HomeGridItemContainer(
+                    icon: 'assets/promote.png',
+                    label: 'Notice Board',
+                    backgroundColor: Color(0xEC0D56A5).withValues(alpha: 0.3),
+                    onclick: () {
+                      Get.to(() => NoticeBoard(), transition: Transition.fade);
+                    }
+                ),
+                HomeGridItemContainer(
+                    icon: 'assets/comments.png',
+                    label: 'Messaging',
+                    backgroundColor: Karas.info.withValues(alpha: 0.5),
+                    onclick: () {
+                      Get.to(() => TeacherChatHeads(), transition: Transition.fade);
+                    }
+                ),
+                HomeGridItemContainer(
+                    icon: 'assets/meeting.png',
+                    label: 'Meetings',
+                    backgroundColor: Karas.danger.withValues(alpha: 0.5),
+                    onclick: () {
+                      Get.to(() => Meetings(), transition: Transition.fade);
+                    }
+                ),
+                HomeGridItemContainer(
+                    icon: 'assets/webinar.png',
+                    label: 'Online Classes',
+                    backgroundColor: Karas.danger.withValues(alpha: 0.5),
+                    onclick: () {
+                      Get.to(() => OnlineClasses(), transition: Transition.fade);
+                    }
+                ),
+              ],
+            ),
+            SizedBox(height: 20,)
           ]
       );
     });

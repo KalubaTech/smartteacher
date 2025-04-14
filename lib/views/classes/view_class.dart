@@ -29,12 +29,12 @@ class ViewClass extends StatelessWidget {
           ),
           bottom: TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.subject), text: 'Subjects'),
+              Tab(icon: Icon(Icons.subject), text: 'My Subjects'),
               Tab(icon: Icon(Icons.group), text: 'Pupils'),
             ],
-            labelColor: Colors.green,
+            labelColor: Karas.secondary,
             unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.green,
+            indicatorColor: Karas.secondary,
             indicatorSize: TabBarIndicatorSize.tab,
           ),
         ),

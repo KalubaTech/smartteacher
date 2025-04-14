@@ -10,7 +10,9 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:smart_teacher/components/ListTiles/image_leading_tile.dart';
 import 'package:smart_teacher/helpers/pdf_helper.dart';
 import 'package:smart_teacher/models/marks_model.dart';
+import 'package:smart_teacher/views/documents/lesson_plans/edit_lesson_plan.dart';
 import 'package:smart_teacher/views/documents/lesson_plans/preview_lesson_plan.dart';
+import 'package:smart_teacher/views/documents/lesson_plans/reproduce_lesson_plan.dart';
 import 'package:smart_teacher/views/documents/mark_schedule/add_marks.dart';
 import '../../../components/kalutext.dart';
 import '../../../controllers/my_classes_controller.dart';
@@ -289,29 +291,117 @@ class _LessonPlansState extends State<LessonPlans> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  ElevatedButton(
+                                  SizedBox(width: 20,),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                        onPressed: (){
+                                          FirebaseFirestore.instance
+                                              .collection('lesson_plans')
+                                              .where('teacher', isEqualTo: lessonplan.teacher)
+                                              .where('date', isEqualTo: lessonplan.date)
+                                              .get()
+                                              .then((d){
+                                                   var id = d.docs.first.id;
+                                                   FirebaseFirestore.instance
+                                                       .collection('lesson_plans')
+                                                   .doc(id).delete();
+                                    
+                                                   Fluttertoast.showToast(msg: 'Deleted successfully');
+                                              });
+                                        },
+                                        child: Text('Delete')
+                                    ),
+                                  ),
+                                  SizedBox(width: 20,),
+                                  Expanded(child: ElevatedButton(
                                       onPressed: (){
-                                        FirebaseFirestore.instance
-                                            .collection('lesson_plans')
-                                            .where('teacher', isEqualTo: lessonplan.teacher)
-                                            .where('date', isEqualTo: lessonplan.date)
-                                            .get()
-                                            .then((d){
-                                                 var id = d.docs.first.id;
-                                                 FirebaseFirestore.instance
-                                                     .collection('lesson_plans')
-                                                 .doc(id).delete();
-
-                                                 Fluttertoast.showToast(msg: 'Deleted successfully');
-                                            });
+                                        Get.to(()=>EditLessonPlan(lessonplan, element.id));
                                       },
-                                      child: Text('Delete')
-                                  )
+                                      child: Text('Edit')
+                                  )),
+                                  SizedBox(width: 20,),
                                 ],
                               ),
                             )
                           );
-                        }
+                        },
+                        trailing:  PopupMenuButton(
+                            itemBuilder: (c)=>[
+                              PopupMenuItem(
+                                onTap: (){
+                                  Get.to(()=>EditLessonPlan(lessonplan, element.id));
+                                },
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit, color: Colors.blue, size: 18,),
+                                    SizedBox(width: 10,),
+                                    Text('Edit'),
+                                  ],
+                                ),
+
+                              ),
+                              PopupMenuItem(
+                                onTap: (){
+                                  Get.to(()=>ReproduceLessonPlan(lessonplan, element.id));
+                                },
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(radius: 10,),
+                                    SizedBox(width: 10,),
+                                    Text('Re-produce'),
+                                  ],
+                                ),
+
+                              ),
+                              PopupMenuItem(
+                                onTap: (){
+                                  Get.defaultDialog(
+                                      title: 'Action',
+                                      titleStyle: GoogleFonts.gabarito(fontSize: 20, fontWeight: FontWeight.bold,),
+                                      titlePadding: EdgeInsets.only(
+                                          top: 10
+                                      ),
+                                      confirm: ElevatedButton(
+                                          onPressed: ()async{
+                                            FirebaseFirestore
+                                                .instance
+                                                .collection('lesson_plans')
+                                                .doc(element.id)
+                                                .delete();
+                                            Get.back();
+                                          },
+                                          child: Text('Confirm',)
+                                      ),
+                                      cancel: ElevatedButton(onPressed: (){Get.back();}, child: Text('Cancel')),
+                                      backgroundColor: Karas.primary,
+                                      content: Container(
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(10)
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 10
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Text('Are you sure you want to delete this lesson plan?', style: TextStyle(fontSize: 16, color: Colors.red),textAlign: TextAlign.center,)
+                                          ],
+                                        ),
+                                      )
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete, color: Colors.red, size: 18,),
+                                    SizedBox(width: 10,),
+                                    Text('Delete'),
+                                  ],
+                                ),
+
+                              ),
+                            ]
+                        ),
                       );
                     },
                     itemComparator: (item1, item2) => item1['subject'].compareTo(item2['subject']), // optional
@@ -320,23 +410,6 @@ class _LessonPlansState extends State<LessonPlans> {
                     order: GroupedListOrder.ASC, // optional
 
                   ),
-
-                 /* ListView.builder(
-                    shrinkWrap: true,
-                      itemCount: snapshot.data!.size,
-                      itemBuilder: (context,index){
-                        var lessonplan = LessonPlan.fromMap(snapshot.data!.docs[index].data());
-
-                        return ImageLeadingTile(
-                          iconPath: 'assets/plan.png',
-                            title: '${lessonplan.date.split(' ').first} ${lessonplan.time}',
-                            subtitle: '${lessonplan.grade} | ${lessonplan.subject} | ${lessonplan.topic}',
-                          ontap: (){
-                            Get.to(()=>PreviewLessonPlan(lessonPlan: lessonplan), transition: Transition.fade);
-                          },
-                        );
-                      }
-                  ),*/
                 );
                 } else {
                   return Container(

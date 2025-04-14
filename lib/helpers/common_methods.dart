@@ -1,11 +1,20 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:docman/docman.dart';
+import 'package:flutter_ripple_animation/ripple_animation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_teacher/controllers/my_subscription_controller.dart';
 import 'package:smart_teacher/controllers/teacher_controller.dart';
 import 'package:smart_teacher/controllers/timetable_controller.dart';
@@ -14,6 +23,7 @@ import 'package:smart_teacher/models/timetable_model.dart';
 import 'package:smart_teacher/views/auth_screens/sign_in_with_google.dart';
 import 'package:smart_teacher/views/documents/lesson_plans/lesson_plans.dart';
 
+import '../controllers/globals.dart';
 import '../services/auth_service.dart';
 
 class CommonMethods{
@@ -22,10 +32,25 @@ class CommonMethods{
   TimetableController _timetableController = Get.find();
 
   FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  TeacherController _teacherController = Get.find();
+  TeacherController _teacherController = Get.find();  
 
-  void addPupil(String fname, String lname, String gender, String intake, String classid, school)async{
 
+  Future<bool> requestStoragePermission() async {
+    if (await Permission.storage.request().isGranted) {
+      print("✅ Storage permission granted!");
+      return true;
+    } else if (await Permission.storage.isDenied) {
+      print("❌ Storage permission denied!");
+      return false;
+    } else if (await Permission.storage.isPermanentlyDenied) {
+      print("⚠️ Storage permission permanently denied. Open settings.");
+      await openAppSettings(); // Opens app settings for manual permission granting
+      return true;
+    }
+    return false;
+  }
+
+  void addPupil(String fname, String lname, String gender, String intake, String classid, school, email)async{
 
     Map<String, dynamic>data = {
       'firstname':fname,
@@ -33,7 +58,10 @@ class CommonMethods{
       'gender':gender,
       'intake':[intake],
       'class':[classid],
-      'school':school
+      'currentClass':classid,
+      'photo':'',
+      'school':school,
+      'email':email
     };
 
     _firebaseFirestore.collection('pupils').add(data);
@@ -275,7 +303,11 @@ class CommonMethods{
     Fluttertoast.showToast(msg: 'Cancelled successfully!');
   }
 
+  Globals _globals = Get.find();
 
+  void updateToken(){
+    FirebaseFirestore.instance.collection('teachers').doc(_teacherController.teacher.first.uid).update({'token':_globals.fcmTokenNotifier.value});
+  }
 
   //delete user
   Future<void> deleteUser(String uid) async {
@@ -308,5 +340,368 @@ class CommonMethods{
       print("Error deleting user data: $e");
     }
   }
+
+  //send notification to device
+  Future<void> sendFCM(String token, String title, String body) async {
+    final response = await http.post(
+      Uri.parse('https://kalootech.com/backend/fcm.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'token': token,
+        'title': title,
+        'body': body,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Message sent successfully');
+      print(response.body);
+    } else {
+      print('Failed to send message');
+      print(response.body);
+    }
+  }
+
+
+  Future<void> sendParentNotifications(String schoolId, String title, String body) async {
+    try {
+      // 1. Get all pupils in this school
+      final pupilsSnapshot = await FirebaseFirestore.instance
+          .collection('pupils')
+          .where('school', isEqualTo: schoolId)
+          .get();
+
+      if (pupilsSnapshot.docs.isEmpty) return;
+
+      // 2. Get all parent-child relationships for these pupils
+      final pupilIds = pupilsSnapshot.docs.map((doc) => doc.id).toList();
+      final parentChildSnapshot = await FirebaseFirestore.instance
+          .collection('parent-child')
+          .where('child', whereIn: pupilIds)
+          .get();
+
+      if (parentChildSnapshot.docs.isEmpty) return;
+
+      // 3. Get distinct parent IDs
+      final parentIds = parentChildSnapshot.docs
+          .map((doc) => doc['parent'] as String)
+          .toSet() // Remove duplicates
+          .toList();
+
+      // 4. Get parent FCM tokens and send notifications
+      final parentsSnapshot = await FirebaseFirestore.instance
+          .collection('parents')
+          .where(FieldPath.documentId, whereIn: parentIds)
+          .get();
+
+      for (final parentDoc in parentsSnapshot.docs) {
+        final token = parentDoc['token'];
+        if (token != null && token is String) {
+          await sendFCM(token, title, body);
+        }
+      }
+    } catch (e) {
+      print(e);
+      Get.snackbar('Error', 'Failed to send parent notifications');
+    }
+  }
+
+  Future<void> sendTeacherNotifications(
+      String schoolId,
+      String title,
+      String body,
+      String excludedTeacherId,
+      ) async {
+    try {
+      // Get all teachers at this school except the excluded one
+      final teachersSnapshot = await FirebaseFirestore.instance
+          .collection('teachers')
+          .where('school', isEqualTo: schoolId)
+          .where(FieldPath.documentId, isNotEqualTo: excludedTeacherId)
+          .get();
+
+      if (teachersSnapshot.docs.isEmpty) return;
+
+      // Send notifications to each teacher
+      for (final teacherDoc in teachersSnapshot.docs) {
+        final token = teacherDoc['token'];
+        if (token != null && token is String) {
+          await sendFCM(token, title, body);
+        }
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send teacher notifications');
+    }
+  }
+
+
+  Future<void> addNotification({
+    required String title,
+    required String message,
+    required String senderName,
+    required String senderId,
+    required List<String> targets,
+  }) async {
+    try {
+      final now = DateTime.now();
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'title': title,
+        'notification': message,
+        'senderName': senderName,
+        'senderId': senderId,
+        'datetime': Timestamp.fromDate(now),
+        'seenIds': [], // Initially no one has seen it
+        'deletedIds': [], // Initially no one has deleted it
+        'targets': targets, // e.g. ['parents', 'teachers'] or ['all']
+      });
+
+      print('Notification added successfully');
+    } catch (e) {
+      print('Error adding notification: $e');
+      rethrow;
+    }
+  }
+
+  endCall(id)async{
+    await FirebaseFirestore.instance.collection('video_call').doc(id).update({'status':'ended'});
+    Fluttertoast.showToast(msg: 'Ended Called');
+  }
+
+  answerCall(id)async{
+    await FirebaseFirestore.instance.collection('video_call').doc(id).update({'status':'talking'});
+  }
+
+
+  JitsiMeet jitsiMeet = JitsiMeet();
+
+
+  Future<void> joinMeeting({
+    required String room,
+    String serverUrl = "https://meet.jit.si",
+    String subject = "Meeting",
+    required String userDisplayName,
+    String? userEmail,
+    String? userAvatarURL,
+    bool audioOnly = false,
+    bool audioMuted = false,
+    bool videoMuted = false,
+  }) async {
+    try {
+      // Feature flags
+      // Create feature flags
+      final featureFlags = {
+        "welcomePage.enabled": false,
+        "resolution": FeatureFlagVideoResolutions.resolution360p,
+        "unsaferoomwarning.enabled": false,
+        "add-people.enabled": false
+        // Add any other feature flags you need
+      };
+
+      // Create conference options
+      var options = JitsiMeetConferenceOptions(
+        serverURL: "https://meet.engagemedia.org",
+        room: room,
+        configOverrides: {
+          "startWithAudioMuted": audioMuted,
+          "startWithVideoMuted": videoMuted,
+          "subject": subject,
+        },
+        featureFlags: featureFlags,
+        userInfo: JitsiMeetUserInfo(
+          displayName: userDisplayName,
+          email: userEmail,
+          avatar: userAvatarURL,
+        ),
+      );
+      // Join meeting
+      await jitsiMeet.join(
+        options,
+      );
+    } catch (error) {
+      debugPrint("Join meeting error: $error");
+    }
+  }
+
+
+  addVideoCall(callerId, callerName, callerPhoto,calleeId, calleeName, calleePhoto, calleeRole)async{
+
+    var data = {
+      'callerId':callerId,
+      'callerName':callerName,
+      'callerPhoto':callerPhoto,
+      'calleeId':calleeId,
+      'calleeName':calleeName,
+      'calleePhoto':calleePhoto,
+      'status':'calling',
+      'datetime':'${DateTime.now()}'
+    };
+
+    await FirebaseFirestore.instance.collection('video_call').add(data).then((d){
+      playOutgoingRingtone();
+      Get.bottomSheet(
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage('assets/call_background.jpg'),
+                  fit: BoxFit.cover
+              ),
+            ),
+            child: StreamBuilder(
+                stream: FirebaseFirestore.instance.collection('video_call').doc(d.id).snapshots(),
+                builder: (context, snapshot) {
+                  if(snapshot.hasData && snapshot.data!.get('status')=='talking'){
+                    Get.back();
+                    joinMeeting(
+                        room: '${callerId}_$calleeId',
+                        userDisplayName: '${callerName}',
+                        userAvatarURL: '${callerPhoto}',
+                        audioMuted: false
+                    );
+                  }
+                  return Column(
+                    children: [
+                      Expanded(
+                          child: Container(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                snapshot.hasData && snapshot.data!.get('status')=='ended'?
+                                Text('Call ended...', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),):
+                                Text('Calling...', style: TextStyle(color: Colors.white),),
+                                Text('${calleeName}', style: GoogleFonts.gabarito(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),),
+                                SizedBox(height: 40,),
+                                RipplesAnimation(
+                                    size: 60,
+                                    child: CircleAvatar(
+                                      radius: 60,
+                                      backgroundImage: NetworkImage('${calleePhoto}'),
+                                    )
+                                )
+                              ],
+                            ),
+                          )
+                      ),
+                      snapshot.hasData && snapshot.data!.get('status')=='ended'?
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 40
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              child: CircleAvatar(
+                                radius: 35,
+                                child: Icon(Icons.close, size: 40,color: Colors.red,),
+                              ),
+                              onTap: (){
+                                player.stop();
+                                Get.back();
+                                CommonMethods().endCall(d.id);
+                              },
+                            ),
+                            SizedBox(width: 40,),
+                            InkWell(
+                              child: CircleAvatar(
+                                radius: 35,
+                                child: Icon(Icons.call_end, size: 40,color: Colors.green,),
+                              ),
+                              onTap: (){
+                                CommonMethods().callback(d.id);
+                              },
+                            ),
+
+                          ],
+                        ),
+                      ) :
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 40
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              child: CircleAvatar(
+                                radius: 35,
+                                child: Icon(Icons.call_end, size: 40,color: Colors.red,),
+                              ),
+                              onTap: (){
+                                player.stop();
+                                Get.back();
+                                CommonMethods().endCall(d.id);
+
+                              },
+                            ),
+
+                          ],
+                        ),
+                      )
+                    ],
+                  );
+                }
+            ),
+          ),
+          backgroundColor: Colors.white,
+          isScrollControlled: true,
+          isDismissible: false
+      );
+    }
+    );
+
+    var calleeData = await FirebaseFirestore.instance.collection(calleeRole).doc(calleeId).get();
+    var token = calleeData.get('token');
+
+    sendFCM(token, 'Incoming call...', '${callerName}');
+
+
+  }
+
+
+  var player = AudioPlayer();
+
+/*  endCall(id)async{
+    await FirebaseFirestore.instance.collection('video_call').doc(id).update({'status':'ended'});
+    Fluttertoast.showToast(msg: 'Ended Called');
+  }
+
+
+  answerCall(id)async{
+    await FirebaseFirestore.instance.collection('video_call').doc(id).update({'status':'talking'});
+  }*/
+
+  playOutgoingRingtone() async {
+    await player.setReleaseMode(ReleaseMode.loop); // 🔁 Set looping mode
+    await player.play(
+      AssetSource('outgoing_call.mp3'),
+      mode: PlayerMode.mediaPlayer,
+      volume: 1,
+    );
+  }
+  playIncomingRingtone()async{
+    await player.setReleaseMode(ReleaseMode.loop); // 🔁 Set looping mode
+    await player.play(
+      AssetSource('ringtone.mp3'),
+      mode: PlayerMode.mediaPlayer,
+      volume: 1,
+    );
+  }
+  stopRinging(){
+    player.stop();
+    print('STOP RINGING');
+  }
+
+  callback(docid){
+    FirebaseFirestore.instance.collection('video_call').doc(docid).update({'status':'calling'});
+  }
+
+
+  String formatDateTime(DateTime dateTime) {
+    final formatter = DateFormat('MMM d, y – h:mm a');
+    return formatter.format(dateTime);
+  }
+
+
 
 }

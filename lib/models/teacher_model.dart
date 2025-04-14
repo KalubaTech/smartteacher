@@ -7,6 +7,7 @@ class TeacherModel{
   String password;
   String? photo;
   String school;
+  bool isAdmin;
 
   TeacherModel({
     required this.uid,
@@ -16,6 +17,7 @@ class TeacherModel{
     required this.phone,
     required this.password,
     this.photo,
-    required this.school
+    required this.school,
+    required this.isAdmin
   });
 }

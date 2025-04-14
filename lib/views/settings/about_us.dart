@@ -5,7 +5,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:smart_teacher/controllers/teacher_controller.dart';
 import 'package:smart_teacher/views/legal/privacy_policy.dart';
 import 'package:smart_teacher/views/legal/terms_and_conditions.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher_android/url_launcher_android.dart';
 import 'package:get/get.dart';
 import '../../components/kalubtn.dart';
 import '../../utils/colors.dart';
@@ -18,13 +18,16 @@ class AboutUs extends StatelessWidget {
   final String phoneNumber = "260973232553";
   TeacherController _teacherController = Get.find();
 
+  var launcher = UrlLauncherAndroid();
+
 
   Future<void> openWhatsApp() async {
     final String message = "Hello! smart teacher ${_teacherController.teacher.first.firstname} here!";
-    final Uri whatsappUrl = Uri.parse("https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}");
+    final  whatsappUrl = "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}";
 
-    if (await canLaunchUrl(whatsappUrl)) {
-      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+
+    if (await launcher.canLaunch(whatsappUrl)) {
+      //await launcher.launchUrl(whatsappUrl);
     } else {
       throw "Could not launch WhatsApp";
     }
@@ -33,7 +36,7 @@ class AboutUs extends StatelessWidget {
   final String recipient = "helpdesk@kalootech.com";
   final String subject = "Smart Teacher Client - query";
 
-  Future<void> sendEmail() async {
+/*  Future<void> sendEmail() async {
     final String recipient = "helpdesk@kalootech.com";
     final String subject = "Smart Teacher Client - query";
     final String message = "Hello! smart teacher ${_teacherController.teacher.first.firstname} here!";
@@ -48,19 +51,16 @@ class AboutUs extends StatelessWidget {
     );
 
     try {
-      await launchUrl(emailUri);
+      await launcher.launchUrl(emailUri);
     } catch (e) {
       print("Error launching email: $e");
     }
-  }
+  }*/
   Future<void> makePhoneCall(String phoneNumber) async {
-    final Uri callUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+    final callUri = 'tel:$phoneNumber';
 
     try {
-      await launchUrl(callUri);
+      ///await launcher.launchUrl(callUri, );
     } catch (e) {
       print("Error making phone call: $e");
     }
@@ -68,11 +68,11 @@ class AboutUs extends StatelessWidget {
   Future<void> launchInBrowser(String url) async {
     final Uri uri = Uri.parse(url);
 
-    if (await canLaunchUrl(uri)) {
+  /*  if (await canLaunchUrl(uri)) {
       await launchInBrowser(url);
     } else {
       throw 'Could not launch $url';
-    }
+    }*/
   }
 
   Future<void> openFacebookProfile(String profileId) async {
@@ -80,11 +80,11 @@ class AboutUs extends StatelessWidget {
     final Uri fbWebUri = Uri.parse("https://www.facebook.com/$profileId"); // For web browser
 
     try {
-      if (await launchUrl(fbAppUri)) {
+/*      if (await launchUrl(fbAppUri)) {
         await launchUrl(fbAppUri);
       } else {
         await launchUrl(fbWebUri); // Open in a browser if the app is not installed
-      }
+      }*/
     } catch (e) {
       print("Error opening Facebook: $e");
     }
@@ -150,7 +150,7 @@ class AboutUs extends StatelessWidget {
                     SizedBox(width: 30,),
                     InkWell(
                       onTap: (){
-                        sendEmail();
+                        //sendEmail();
                       },
                         child: Icon(Ionicons.mail, size: 40,color: Colors.deepOrange,)
                     ),

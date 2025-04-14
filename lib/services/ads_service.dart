@@ -25,6 +25,7 @@ class AdsService{
     await AdmobEasy.instance.showRewardedAd(
       context,
       onUserEarnedReward: (awv, rewardedItem) {
+        print('REWARDED!!!!!!');
         print(rewardedItem.amount);
         printPdf();  // Call the function passed as a parameter
       },

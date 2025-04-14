@@ -108,21 +108,45 @@ class Subscription extends StatelessWidget {
                     ],
                   ),
                 ):Container(
+                  margin: EdgeInsets.only(bottom: 20),
                   padding: EdgeInsets.symmetric(
                     horizontal: 20,
-                    vertical: 10
+                    vertical: 15
                   ),
-                  child: Text('You need an active subscription to generate documents', style: GoogleFonts.gabarito(fontSize: 13, fontWeight: FontWeight.bold),),
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        // 135deg corresponds to top-left to bottom-right
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xC27EDAA4), // #4f8c6a at 0%
+                          Color(0xFF65D3A9), // #65d3a9 at 64%
+                          Color(0xFF65D3A9), // #65d3a9 at 64%
+                          Color(0xFF1AE8CF), // #27d1bd at 66%
+                          Color(0xFF6BC67A), // #6bc67a at 100%
+                        ],
+                        stops: [
+                          0.0,
+                          0.64,
+                          0.64,
+                          0.66,
+                          1.0
+                        ], // Corresponding stops for the colors
+                      ),
+                    borderRadius: BorderRadius.circular(10)
+                  ),
+                  child: Text('You need an active subscription to generate documents without showing Ads', textAlign: TextAlign.center, style: GoogleFonts.gabarito(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),),
                 );
               }
             ),
             Container(
-                child: Text('Renew your subscription', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),),
-              padding: EdgeInsets.symmetric(horizontal: 10,),
+                child: Text('Renew your subscription', style: GoogleFonts.gabarito(fontSize: 16,fontWeight: FontWeight.bold, color: Colors.black),),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
             ),
-            SizedBox(height: 10,),
+
             ...subscriptionPlans.map((plan){
               return Card(
+                color: Colors.grey.shade100,
                 child: InkWell(
                   onTap: ()=>Get.to(()=>WebViewer(amount: double.parse(plan.amount), plan: '${plan.plan}',), transition: Transition.fade),
                   child: Container(
@@ -131,7 +155,11 @@ class Subscription extends StatelessWidget {
                         Container(
                           width: 60,
                           child: Center(
-                            child: Icon(Icons.check_circle, color: Karas.primary,),
+                            child: GetBuilder<MySubscriptionController>(
+                              builder: (mysubcontroller) {
+                                return Icon(Icons.check_circle, color: mysubcontroller.my_subscription.value.contains(plan) ? Karas.primary : Colors.grey.shade400,);
+                              }
+                            ),
                           ),
                         ),
                         Expanded(
@@ -149,7 +177,9 @@ class Subscription extends StatelessWidget {
                                 ],
                               ),
                             )
-                        )
+                        ),
+                        Icon(Icons.arrow_forward_ios),
+                        SizedBox(width: 10,)
                       ],
                     ),
                   ),

@@ -7,8 +7,9 @@ class ImageLeadingTile extends StatelessWidget {
   String? iconPath;
   Function()?ontap;
   Function()?onlongpress;
+  Widget?trailing;
   bool? active;
-  ImageLeadingTile({required this.title, this.subtitle, this.iconPath, this.ontap, this.active, this.onlongpress});
+  ImageLeadingTile({required this.title, this.subtitle, this.iconPath, this.ontap, this.active, this.onlongpress, this.trailing});
 
 
   @override
@@ -26,6 +27,7 @@ class ImageLeadingTile extends StatelessWidget {
           vertical: 10
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             iconPath!=null?
             Row(
@@ -36,14 +38,17 @@ class ImageLeadingTile extends StatelessWidget {
                 SizedBox(width: 14,),
               ],
             ):Container(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$title', style: GoogleFonts.gabarito(fontSize: 18, color: active!=null&&active==false?Colors.grey:Colors.black),),
-                subtitle!=null?Text('${subtitle!}', overflow: TextOverflow.ellipsis,style: TextStyle(fontSize: 12),)
-                    :Container()
-              ],
-            )
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$title', style: GoogleFonts.gabarito(fontSize: 18, color: active!=null&&active==false?Colors.grey:Colors.black),),
+                  subtitle!=null?Text('${subtitle!}', overflow: TextOverflow.ellipsis,style: TextStyle(fontSize: 12),)
+                      :Container()
+                ],
+              ),
+            ),
+            trailing??Container()
           ],
         ),
       ),
